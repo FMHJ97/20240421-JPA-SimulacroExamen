@@ -3,6 +3,7 @@ package papeleria;
 import javax.swing.JFrame;
 
 import papeleria.utils.Apariencia;
+import papeleria.view.PanelArticulo;
 
 public class Principal extends JFrame {
 
@@ -30,10 +31,13 @@ public class Principal extends JFrame {
 	public Principal() {
 		super("Gestión Papeleria - JPA");
 		
-		this.setBounds(100, 100, 700, 600);
+		this.setBounds(100, 100, 600, 350);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setResizable(false);
 		
+		PanelArticulo panelArticulo = new PanelArticulo();
 		
+		this.getContentPane().add(panelArticulo);
 	}
 
 	/**
