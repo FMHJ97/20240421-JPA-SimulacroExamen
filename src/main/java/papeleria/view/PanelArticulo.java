@@ -20,10 +20,13 @@ import javax.swing.JOptionPane;
 import java.awt.GridBagConstraints;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.util.List;
 
 import javax.swing.JTextField;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -38,12 +41,12 @@ public class PanelArticulo extends JPanel {
 	private JTextField jtfPrecio;
 	JComboBox<Proveedor> jcbProveedor;
 	
-	// Variable para poder aplicar el color al panel actual.
-	JPanel panelArt;
+	// Variable para poder gestionar el PanelArticulo.
+	private JPanel panelArt;
 	
 	// El componente JColorChooser y el color a aplicar.
-	JColorChooser jColorChooser;
-	Color colorPanel;
+	private JColorChooser jColorChooser;
+	private Color colorPanel;
 
 	/**
 	 * Create the panel.
@@ -291,16 +294,47 @@ public class PanelArticulo extends JPanel {
 		gbc_jcbProveedor.gridy = 7;
 		panelArt.add(jcbProveedor, gbc_jcbProveedor);
 		
-		JButton btnNewButton = new JButton("Gestión Proveedor");
-		btnNewButton.setFont(new Font("Tahoma", Font.BOLD, 15));
-		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-		gbc_btnNewButton.gridx = 2;
-		gbc_btnNewButton.gridy = 7;
-		panelArt.add(btnNewButton, gbc_btnNewButton);
+		JButton btnProveedor = new JButton("Gestión Proveedor");
+		btnProveedor.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showJDialogProveedor();
+			}
+		});
+		btnProveedor.setFont(new Font("Tahoma", Font.BOLD, 15));
+		GridBagConstraints gbc_btnProveedor = new GridBagConstraints();
+		gbc_btnProveedor.gridx = 2;
+		gbc_btnProveedor.gridy = 7;
+		panelArt.add(btnProveedor, gbc_btnProveedor);
 
 		// Precarga de Datos.
 		loadAllProveedores();
 		showFirst();
+	}
+	
+	/**
+	 * 
+	 * @param panel
+	 */
+	private void showJDialogProveedor() {
+		int idActual = Integer.parseInt(this.jtfId.getText());
+		
+		JDialog dialogo = new JDialog();
+		// El usuario no puede redimensionar el diálogo
+		dialogo.setResizable(true);
+		// título del díalogo
+		dialogo.setTitle("JDialog - Gestión Proveedor");
+		// Introducimos el panel creado sobre el diálogo.
+		dialogo.setContentPane(new PanelProveedor(idActual));
+		// Empaquetar el di�logo hace que todos los componentes ocupen el espacio que deben y el lugar adecuado
+		dialogo.pack();
+		// El usuario no puede hacer clic sobre la ventana padre, si el Di�logo es modal
+		dialogo.setModal(true);
+		// Centro el di�logo en pantalla
+		dialogo.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width)/2 - dialogo.getWidth()/2, 
+				(Toolkit.getDefaultToolkit().getScreenSize().height)/2 - dialogo.getHeight()/2);
+		// Muestro el di�logo en pantalla
+		dialogo.setVisible(true);
 	}
 	
 	/**
