@@ -28,6 +28,8 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 
 public class PanelArticulo extends JPanel {
@@ -317,15 +319,20 @@ public class PanelArticulo extends JPanel {
 	 * @param panel
 	 */
 	private void showJDialogProveedor() {
-		int idActual = Integer.parseInt(this.jtfId.getText());
 		
 		JDialog dialogo = new JDialog();
 		// El usuario no puede redimensionar el diálogo
 		dialogo.setResizable(true);
 		// título del díalogo
 		dialogo.setTitle("JDialog - Gestión Proveedor");
-		// Introducimos el panel creado sobre el diálogo.
-		dialogo.setContentPane(new PanelProveedor(idActual));
+		// Introducimos el PanelProveedor al JDialog,
+		// pasándole como parámetro el PanelArticulo actual. Es decir,
+		// estamos pasando una referencia a la instancia actual de
+		// PanelArticulo.
+		// Además, le pasamos el panelProveedor el propio JDialog, consiguiendo
+		// una instancia del mismo para poder realizar la actualización de los
+		// datos del jcbProveedores.
+		dialogo.setContentPane(new PanelProveedor(this, dialogo));
 		// Empaquetar el di�logo hace que todos los componentes ocupen el espacio que deben y el lugar adecuado
 		dialogo.pack();
 		// El usuario no puede hacer clic sobre la ventana padre, si el Di�logo es modal
@@ -581,7 +588,7 @@ public class PanelArticulo extends JPanel {
 	 * 
 	 * @param a
 	 */
-	private void showArticulo(Articulo a) {
+	public void showArticulo(Articulo a) {
 		if (a != null) {
 			this.jtfId.setText("" + a.getId());
 			this.jtfCodigo.setText(a.getCodigo());
@@ -616,13 +623,24 @@ public class PanelArticulo extends JPanel {
 	/**
 	 * Método que carga TODOS los proveedores de la BBDD al JComboBox.
 	 */
-	private void loadAllProveedores() {
+	public void loadAllProveedores() {
+		
+		jcbProveedor.removeAllItems();
+		
 		List<Proveedor> proveedores = (List<Proveedor>) ControladorProveedor
 				.getInstance().findAll();
 		
 		for (Proveedor proveedor : proveedores) {
 			this.jcbProveedor.addItem(proveedor);
 		}
+	}
+
+	public JTextField getJtfId() {
+		return jtfId;
+	}
+
+	public void setJtfId(JTextField jtfId) {
+		this.jtfId = jtfId;
 	}
 
 }

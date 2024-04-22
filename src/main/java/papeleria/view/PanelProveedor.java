@@ -4,7 +4,9 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import javax.swing.JToolBar;
 
+import papeleria.controladores.ControladorArticulo;
 import papeleria.controladores.ControladorProveedor;
+import papeleria.entities.Articulo;
 import papeleria.entities.Proveedor;
 
 import javax.swing.JButton;
@@ -12,12 +14,21 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import java.awt.GridBagLayout;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.awt.Font;
 import javax.swing.JTextField;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JCheckBox;
 import javax.swing.JRadioButton;
 
@@ -35,17 +46,30 @@ public class PanelProveedor extends JPanel {
 	private JRadioButton jrbIva4;
 	private JRadioButton jrbIva10;
 	private JRadioButton jrbIva21;
+	
+	private PanelArticulo panelArticulo;
+	private JDialog jd;
 
 	/**
 	 * Create the panel.
 	 */
-	public PanelProveedor(int idProveedorArticulo) {
+	public PanelProveedor(PanelArticulo panelArticulo, JDialog jd) {
+		
+		this.panelArticulo = panelArticulo;
+		this.jd = jd;
+		
 		setLayout(new BorderLayout(0, 0));
 		
 		JToolBar toolBar = new JToolBar();
 		add(toolBar, BorderLayout.NORTH);
 		
 		JButton btnSave = new JButton("Guardar");
+		btnSave.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				guardar();
+			}
+		});
 		btnSave.setIcon(new ImageIcon(PanelProveedor.class.getResource("/papeleria/res/guardar.png")));
 		toolBar.add(btnSave);
 		
@@ -227,16 +251,74 @@ public class PanelProveedor extends JPanel {
 		loadNacionalidades();
 		
 		// Mostramos la información del Articulo seleccionado.
-		showProveedor(idProveedorArticulo);
+		showProveedor();
+		
+	}
+	
+	private void guardar() {
+		///PROCESO DE GUARDADO///
+		Proveedor p = new Proveedor();
+		
+		p.setId(Integer.parseInt(this.jtfId.getText()));
+		p.setCif(this.jtfCIF.getText());
+		p.setNacionalidad((String) this.jcbNacionalidad.getSelectedItem());
+		p.setActivo(this.jchkbActivo.isSelected());
+		
+		String str = this.jtfFecha.getText();
+		if (!str.trim().equals("")) {
+			try {
+				p.setFechaAlta(sdf.parse(this.jtfFecha.getText()));
+			} catch (ParseException e) {
+				JOptionPane.showMessageDialog(null,
+						"Error. La fecha de alta debe tener el siguiente formato: dd/MM/yyyy");
+				return;
+			}
+		} else {
+			p.setFechaAlta(null);
+		}
+		
+		if (this.jrbIvaExento.isSelected()) {
+			p.setIva(0);
+		} else if (this.jrbIva4.isSelected()) {
+			p.setIva(4);
+		} else if (this.jrbIva10.isSelected()) {
+			p.setIva(10);
+		} else {
+			p.setIva(21);
+		}
+		
+		// Efectuamos el guardado.
+		ControladorProveedor.getInstance().updateProveedor(p);
+		
+		// Actualizamos los datos del PanelArticulo.
+		// Al cerrar el JDialog, volvemos a cargar a los proveedores.
+		// A continuación, mostramos el registro que teniamos seleccionado.
+		// De esta manera, podemos observar el cambio en tiempo real 
+		// del JComboBox de Proveedores.
+		this.jd.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		this.jd.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				// TODO Auto-generated method stub
+				super.windowClosing(e);
+				panelArticulo.loadAllProveedores();
+				
+				int idArticuloActual = Integer.parseInt(panelArticulo.getJtfId().getText());
+				Articulo a = (Articulo) ControladorArticulo
+						.getInstance().findById(idArticuloActual);
+				panelArticulo.showArticulo(a);
+			}
+		});
 	}
 	
 	/**
 	 * 
 	 * @param idProveedor
 	 */
-	private void showProveedor(int idProveedor) {
-		Proveedor p = (Proveedor) ControladorProveedor
-				.getInstance().findById(idProveedor);
+	private void showProveedor() {
+		
+		Proveedor p = (Proveedor) this.panelArticulo.jcbProveedor
+				.getSelectedItem();
 		
 		if (p != null) {
 			this.jtfId.setText("" + p.getId());
@@ -249,13 +331,7 @@ public class PanelProveedor extends JPanel {
 			}
 			
 			this.jchkbActivo.setSelected(p.isActivo());
-			if (p.isActivo()) {
-				this.jchkbActivo.setEnabled(true);
-				this.jtfFecha.setText(sdf.format(p.getFechaAlta()));
-			} else {
-				this.jtfFecha.setEnabled(false);
-				this.jtfFecha.setText("");
-			}
+			this.jtfFecha.setText(sdf.format(p.getFechaAlta()));
 			
 			switch (p.getIva()) {
 			case 0:
@@ -269,9 +345,6 @@ public class PanelProveedor extends JPanel {
 				break;
 			case 21:
 				this.jrbIva21.setSelected(true);
-				break;
-			default:
-				this.jrbIvaExento.setSelected(true);
 				break;
 			}
 			

@@ -1,5 +1,7 @@
 package papeleria.controladores;
 
+import javax.persistence.EntityManager;
+
 import papeleria.entities.Proveedor;
 
 public class ControladorProveedor extends SuperControladorJPA {
@@ -22,6 +24,18 @@ public class ControladorProveedor extends SuperControladorJPA {
 			instance = new ControladorProveedor();
 		}
 		return instance;
+	}
+	
+	/**
+	 * 
+	 * @param p
+	 */
+	public void updateProveedor(Proveedor p) {
+		EntityManager em = getEntityManager();
+		
+		em.getTransaction().begin();
+		em.merge(p);
+		em.getTransaction().commit();
 	}
 
 }
